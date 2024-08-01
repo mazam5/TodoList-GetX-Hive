@@ -1,37 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_list_app/model/task_model.dart';
 
 class TaskController extends GetxController {
-  final RxList<Task> _taskList = <Task>[
-    Task(
-      id: 1,
-      title: 'Task 1',
-      description: 'Description 1',
-      completed: true,
-      priority: 'High',
-      dueDate: DateTime(2024, 8, 3),
-      createdAt: DateTime.now(),
-    ),
-    Task(
-      id: 2,
-      title: 'Task 2',
-      description: 'Description 2',
-      completed: false,
-      priority: 'Medium',
-      dueDate: DateTime(2024, 8, 5),
-      createdAt: DateTime.now(),
-    ),
-    Task(
-      id: 3,
-      title: 'Task 3',
-      description: 'Description 3',
-      completed: false,
-      priority: 'Low',
-      dueDate: DateTime(2024, 8, 7),
-      createdAt: DateTime.now(),
-    ),
-  ].obs;
+  final Box<Task> _myBox = Hive.box<Task>('tasks');
+
+  @override
+  void onInit() {
+    _initializeTasks();
+    super.onInit();
+  }
+
+  final RxList<Task> _taskList = <Task>[].obs;
 
   List<Task> get taskList => _taskList;
 
@@ -49,9 +30,51 @@ class TaskController extends GetxController {
     super.dispose();
   }
 
+  void _initializeTasks() {
+    if (_myBox.isEmpty) {
+      _myBox.put(
+        1,
+        Task(
+          id: 1,
+          title: 'Task 1',
+          description: 'Description 1',
+          completed: true,
+          priority: 'High',
+          dueDate: DateTime.now(),
+          createdAt: DateTime.now(),
+        ),
+      );
+      _myBox.put(
+        2,
+        Task(
+          id: 2,
+          title: 'Task 2',
+          description: 'Description 2',
+          completed: false,
+          priority: 'Medium',
+          dueDate: DateTime.now(),
+          createdAt: DateTime.now(),
+        ),
+      );
+      _myBox.put(
+        3,
+        Task(
+          id: 3,
+          title: 'Task 3',
+          description: 'Description 3',
+          completed: false,
+          priority: 'Low',
+          dueDate: DateTime.now(),
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+    _taskList.assignAll(_myBox.values.toList());
+  }
+
   void addTask() {
     final task = Task(
-      id: _taskList.length + 1,
+      id: _myBox.length + 1,
       title: titleController.text,
       description: descriptionController.text,
       completed: completed,
@@ -59,9 +82,8 @@ class TaskController extends GetxController {
       dueDate: dueDate,
       createdAt: DateTime.now(),
     );
-    _taskList.add(task);
-    Get.back();
     clearFields();
+    Get.back();
     Get.showSnackbar(
       const GetSnackBar(
         duration: Duration(seconds: 3),
@@ -69,32 +91,45 @@ class TaskController extends GetxController {
         messageText: Text('Task added successfully!'),
       ),
     );
+    _myBox.put(task.id, task);
+    _taskList.add(task);
   }
 
   void editTask(int id) {
     isEditing = true;
-    final index = _taskList.indexWhere((task) => task.id == id);
-    if (index != -1) {
-      titleController.text = _taskList[index].title;
-      descriptionController.text = _taskList[index].description;
-      completed = _taskList[index].completed;
-      dueDate = _taskList[index].dueDate;
-      priority = _taskList[index].priority;
+    final task = _myBox.get(id);
+    if (task != null && !task.completed) {
+      titleController.text = task.title;
+      descriptionController.text = task.description;
+      completed = task.completed;
+      dueDate = task.dueDate;
+      priority = task.priority;
+    } else {
+      isEditing = false;
+      Get.showSnackbar(
+        const GetSnackBar(
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,
+          messageText: Text('Completed tasks cannot be edit!'),
+        ),
+      );
     }
   }
 
   void updateTask(int id) {
-    final index = _taskList.indexWhere((task) => task.id == id);
-    if (index != -1) {
-      _taskList[index] = Task(
+    final task = _myBox.get(id);
+    if (task != null) {
+      final updatedTask = Task(
         id: id,
         title: titleController.text,
         description: descriptionController.text,
         completed: completed,
         priority: priority,
         dueDate: dueDate,
-        createdAt: DateTime.now(),
+        createdAt: task.createdAt,
       );
+      _myBox.put(id, updatedTask);
+      _taskList[_taskList.indexWhere((task) => task.id == id)] = updatedTask;
     }
     clearFields();
     Get.back();
@@ -109,42 +144,44 @@ class TaskController extends GetxController {
   }
 
   void markAsCompleted(int id) {
-    final index = _taskList.indexWhere((task) => task.id == id);
-    if (index != -1) {
-      if (_taskList[index].completed) {
-        Get.showSnackbar(
-          const GetSnackBar(
-            duration: Duration(seconds: 3),
-            backgroundColor: Colors.red,
-            messageText: Text('Task already marked as completed!'),
-          ),
-        );
-        return;
-      }
-      _taskList[index] = _taskList[index].copyWith(
-        completed: !_taskList[index].completed,
-      );
+    final task = _myBox.get(id);
+    if (task != null && !task.completed) {
+      final updatedTask = task.copyWith(completed: true);
+      _myBox.put(id, updatedTask);
+      _taskList[_taskList.indexWhere((task) => task.id == id)] = updatedTask;
       _taskList.refresh();
+      Get.showSnackbar(
+        const GetSnackBar(
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+          messageText: Text('Task marked as completed!'),
+        ),
+      );
+    } else {
+      Get.showSnackbar(
+        const GetSnackBar(
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.red,
+          messageText: Text('Task already marked as completed!'),
+        ),
+      );
     }
-    Get.showSnackbar(
-      const GetSnackBar(
-        duration: Duration(seconds: 3),
-        backgroundColor: Colors.orange,
-        messageText: Text('Task marked as completed!'),
-      ),
-    );
   }
 
   void removeTask(int id) {
-    _taskList.removeWhere((task) => task.id == id);
-  }
-
-  void undoDelete(int id, Task task) {
-    final index = _taskList.indexWhere((t) => t.id == id);
-    if (index != -1) {
-      _taskList.insert(index, task);
-    } else {
-      _taskList.add(task);
+    final taskIndex = _taskList.indexWhere((task) => task.id == id);
+    if (taskIndex != -1) {
+      _myBox.delete(id);
+      // _taskList.removeAt(taskIndex);
+      _taskList.removeWhere((task) => task.id == id);
+      Get.back();
+      Get.showSnackbar(
+        const GetSnackBar(
+          backgroundColor: Colors.red,
+          messageText: Text('Task has been deleted!'),
+          duration: Duration(seconds: 4),
+        ),
+      );
     }
   }
 

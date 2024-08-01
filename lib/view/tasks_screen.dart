@@ -19,23 +19,6 @@ class MainScreen extends StatelessWidget {
         backgroundColor: Colors.grey[300],
         title: const Text('To Do List App'),
       ),
-      // body: FutureBuilder(
-      //   future: strapiService.fetchTasks(),
-      //   builder: (BuildContext context, AsyncSnapshot snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.waiting) {
-      //       return const Center(
-      //         child: CircularProgressIndicator(),
-      //       );
-      //     } else if (snapshot.hasError) {
-      //       return const Center(
-      //         child: Text('Error fetching tasks'),
-      //       );
-      //     } else if (snapshot.data.isEmpty) {
-      //       return const Center(
-      //         child: Text('No tasks found'),
-      //       );
-      //     } else {
-      // return
       body: Obx(
         () => (controller.taskList.isEmpty)
             ? const Center(
@@ -55,14 +38,16 @@ class MainScreen extends StatelessWidget {
                       onDoubleTap: () {
                         // edit task
                         controller.editTask(todo.id);
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AddEditDialog(
-                              id: todo.id,
-                            );
-                          },
-                        );
+                        if (!todo.completed) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AddEditDialog(
+                                id: todo.id,
+                              );
+                            },
+                          );
+                        }
                       },
                       onLongPress: () {
                         // delete task
@@ -70,7 +55,9 @@ class MainScreen extends StatelessWidget {
                           context: context,
                           builder: (context) {
                             return DeleteDialog(
-                                controller: controller, todo: todo);
+                              controller: controller,
+                              todo: todo,
+                            );
                           },
                         );
                       },
@@ -95,15 +82,17 @@ class MainScreen extends StatelessWidget {
                           } else if (direction == DismissDirection.startToEnd) {
                             // edit task
                             controller.editTask(todo.id);
-                            return await showDialog(
-                              context: context,
-                              builder: (context) {
-                                controller.isEditing = false;
-                                return AddEditDialog(
-                                  id: todo.id,
-                                );
-                              },
-                            );
+                            if (!todo.completed) {
+                              return await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  controller.isEditing = false;
+                                  return AddEditDialog(
+                                    id: todo.id,
+                                  );
+                                },
+                              );
+                            }
                           }
                           return false;
                         },
@@ -189,10 +178,6 @@ class MainScreen extends StatelessWidget {
                 },
               ),
       ),
-
-      //     }
-      //   },
-      // ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -239,26 +224,6 @@ class DeleteDialog extends StatelessWidget {
         TextButton(
           onPressed: () {
             controller.removeTask(todo.id);
-            Get.back();
-            Get.showSnackbar(
-              GetSnackBar(
-                backgroundColor: Colors.red,
-                messageText: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Task has been deleted!'),
-                    TextButton.icon(
-                      onPressed: () {
-                        Get.back();
-                      },
-                      icon: const Icon(Icons.undo),
-                      label: const Text('Undo'),
-                    ),
-                  ],
-                ),
-                duration: const Duration(seconds: 6),
-              ),
-            );
           },
           child: const Text('Delete'),
         ),

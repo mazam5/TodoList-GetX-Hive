@@ -38,6 +38,12 @@ class AddEditDialog extends StatelessWidget {
             ),
             TextFormField(
               key: const ValueKey('title'),
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
               controller: controller.titleController,
               textCapitalization: TextCapitalization.sentences,
               onChanged: (value) => {
@@ -68,16 +74,16 @@ class AddEditDialog extends StatelessWidget {
                   ),
                   items: const [
                     DropdownMenuItem(
-                      value: 'Low',
-                      child: Text('Low'),
+                      value: 'High',
+                      child: Text('High'),
                     ),
                     DropdownMenuItem(
                       value: 'Medium',
                       child: Text('Medium'),
                     ),
                     DropdownMenuItem(
-                      value: 'High',
-                      child: Text('High'),
+                      value: 'Low',
+                      child: Text('Low'),
                     ),
                   ],
                   onChanged: (value) => controller.priority = value.toString(),
