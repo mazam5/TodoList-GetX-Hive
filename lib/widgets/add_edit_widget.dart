@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
 import 'package:todo_list_app/controller/task_controller.dart';
 
 class AddEditDialog extends StatelessWidget {
@@ -45,7 +47,11 @@ class AddEditDialog extends StatelessWidget {
                 return null;
               },
               controller: controller.titleController,
-              textCapitalization: TextCapitalization.sentences,
+              onEditingComplete: () {
+                if (controller.titleController.text.isNotEmpty) {
+                  FocusScope.of(context).nextFocus();
+                }
+              },
               onChanged: (value) => {
                 controller.titleController.text = value,
                 // print(controller.titleController!.text),
@@ -56,7 +62,6 @@ class AddEditDialog extends StatelessWidget {
             TextFormField(
               key: const ValueKey('description'),
               controller: controller.descriptionController,
-              textCapitalization: TextCapitalization.sentences,
               minLines: 1,
               maxLines: 3,
               onChanged: (value) =>
@@ -66,47 +71,58 @@ class AddEditDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                DropdownButton(
-                  hint: Text(
-                    controller.priority == ''.obs
-                        ? 'Priority'
-                        : controller.priority.toString(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'High',
-                      child: Text('High'),
+                Obx(
+                  () => DropdownButton<String>(
+                    value: controller.priority.value.isNotEmpty
+                        ? controller.priority.value
+                        : null,
+                    hint: Text(
+                      controller.priority.value.isEmpty
+                          ? 'Priority'
+                          : controller.priority.value,
                     ),
-                    DropdownMenuItem(
-                      value: 'Medium',
-                      child: Text('Medium'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Low',
-                      child: Text('Low'),
-                    ),
-                  ],
-                  onChanged: (value) =>
-                      controller.priority = value.toString().obs,
-                ),
-                TextButton(
-                  onPressed: () {
-                    showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2025),
-                      currentDate: DateTime.now(),
-                    ).then((value) {
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'Low',
+                        child: Text('Low'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Medium',
+                        child: Text('Medium'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'High',
+                        child: Text('High'),
+                      ),
+                    ],
+                    onChanged: (value) {
                       if (value != null) {
-                        controller.dueDate = value.toString().obs;
+                        controller.priority.value = value;
                       }
-                    });
-                  },
-                  child: Text(
-                    controller.dueDate == DateTime.now().toIso8601String().obs
-                        ? 'Due Date'
-                        : controller.dueDate.toString().substring(0, 10),
+                    },
+                  ),
+                ),
+                Obx(
+                  () => TextButton(
+                    onPressed: () {
+                      showDatePicker(
+                        context: context,
+                        initialDate: controller.dueDate.value,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2025),
+                      ).then((value) {
+                        if (value != null) {
+                          controller.dueDate.value = value;
+                        }
+                      });
+                    },
+                    child: Text(
+                      controller.dueDate.value == DateTime.now()
+                          ? 'Due Date'
+                          : DateFormat('dd-MMM-yyyy').format(
+                              controller.dueDate.value,
+                            ),
+                    ),
                   ),
                 ),
               ],
@@ -115,7 +131,7 @@ class AddEditDialog extends StatelessWidget {
               children: [
                 OutlinedButton(
                     onPressed: () {
-                      controller.clearFields();
+                      controller.clearTextFields();
                     },
                     child: const Text('Clear')),
                 const Spacer(),

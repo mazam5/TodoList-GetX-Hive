@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:todo_list_app/model/task_model.dart';
 
 class TaskController extends GetxController {
   final Box<Task> _myBox = Hive.box<Task>('tasks');
+
+  final RxList<Task> _taskList = <Task>[].obs;
+  final RxList<Task> _filteredTaskList = <Task>[].obs;
+
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+
+  final RxString selectedPriority = ''.obs;
+
+  RxString priority = 'Low'.obs;
+  Rx<DateTime> dueDate = DateTime.now().obs;
+  Rx<DateTime> filterDueDate = DateTime.now().obs;
+  Rx<DateTime> filterCreateDate = DateTime.now().obs;
+
+  bool completed = false;
+  bool isEditing = false;
+
+  List<Task> get taskList => _filteredTaskList;
 
   @override
   void onInit() {
@@ -12,89 +32,55 @@ class TaskController extends GetxController {
     super.onInit();
   }
 
-  final RxList<Task> _taskList = <Task>[].obs;
-  RxString priority = ''.obs;
-  late RxString dueDate = DateTime.now().toIso8601String().obs;
-
-  List<Task> get taskList => _taskList;
-
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  bool completed = false;
-  bool isEditing = false;
-
   @override
   void dispose() {
     titleController.dispose();
     descriptionController.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
   void _initializeTasks() {
-    if (_myBox.isEmpty) {
-      _myBox.put(
-        1,
-        Task(
-          id: 1,
-          title: 'Task 1',
-          description: 'Description 1',
-          completed: true,
-          priority: 'High',
-          dueDate: DateTime.now(),
-          createdAt: DateTime.now(),
-        ),
-      );
-      _myBox.put(
-        2,
-        Task(
-          id: 2,
-          title: 'Task 2',
-          description: 'Description 2',
-          completed: false,
-          priority: 'Medium',
-          dueDate: DateTime.now(),
-          createdAt: DateTime.now(),
-        ),
-      );
-      _myBox.put(
-        3,
-        Task(
-          id: 3,
-          title: 'Task 3',
-          description: 'Description 3',
-          completed: false,
-          priority: 'Low',
-          dueDate: DateTime.now(),
-          createdAt: DateTime.now(),
-        ),
-      );
-    }
     _taskList.assignAll(_myBox.values.toList());
+    _filteredTaskList.assignAll(_taskList);
   }
 
   void addTask() {
+    final taskId = _myBox.isEmpty
+        ? 1
+        : _myBox.keys
+                .cast<int>()
+                .map((e) => e)
+                .reduce((a, b) => a > b ? a : b) +
+            1;
     final task = Task(
-      id: _myBox.length + 1,
+      id: taskId,
       title: titleController.text,
       description: descriptionController.text,
       completed: completed,
-      priority: priority.string,
-      dueDate: dueDate.value.toString().isNotEmpty
-          ? DateTime.parse(dueDate.value)
-          : DateTime.now(),
+      priority: priority.value,
+      dueDate: dueDate.value,
       createdAt: DateTime.now(),
     );
-    clearFields();
+
+    _myBox.put(task.id, task);
+    _taskList.add(task);
+    // filterTasks(
+    //   searchController.text,
+    //   selectedPriority.value,
+    //   filterDueDate.value,
+    //   filterCreateDate.value,
+    // );
+    clearTextFields();
     Get.back();
     Get.showSnackbar(
       const GetSnackBar(
         duration: Duration(seconds: 3),
         backgroundColor: Colors.green,
-        messageText: Text('Task added successfully!'),
+        messageText: Text('Task added successfully!',
+            style: TextStyle(color: Colors.white)),
       ),
     );
-    _myBox.put(task.id, task);
-    _taskList.add(task);
   }
 
   void editTask(int id) {
@@ -104,15 +90,15 @@ class TaskController extends GetxController {
       titleController.text = task.title;
       descriptionController.text = task.description;
       completed = task.completed;
-      dueDate = task.dueDate.toIso8601String().obs;
-      priority = task.priority.toString().obs;
+      dueDate.value = task.dueDate;
+      priority.value = task.priority;
     } else {
       isEditing = false;
       Get.showSnackbar(
         const GetSnackBar(
           duration: Duration(seconds: 3),
           backgroundColor: Colors.red,
-          messageText: Text('Completed tasks cannot be edit!'),
+          messageText: Text('Completed tasks cannot be edited!'),
         ),
       );
     }
@@ -126,16 +112,23 @@ class TaskController extends GetxController {
         title: titleController.text,
         description: descriptionController.text,
         completed: completed,
-        priority: priority.string,
-        dueDate: dueDate.value.toString().isNotEmpty
-            ? DateTime.parse(dueDate.value)
-            : DateTime.now(),
+        priority: priority.value,
+        dueDate: dueDate.value,
         createdAt: task.createdAt,
       );
       _myBox.put(id, updatedTask);
-      _taskList[_taskList.indexWhere((task) => task.id == id)] = updatedTask;
+      final index = _taskList.indexWhere((task) => task.id == id);
+      if (index != -1) {
+        _taskList[index] = updatedTask;
+        // filterTasks(
+        //   searchController.text,
+        //   selectedPriority.value,
+        //   filterDueDate.value,
+        //   filterCreateDate.value,
+        // );
+      }
     }
-    clearFields();
+    clearTextFields();
     Get.back();
     isEditing = false;
     Get.showSnackbar(
@@ -152,8 +145,16 @@ class TaskController extends GetxController {
     if (task != null && !task.completed) {
       final updatedTask = task.copyWith(completed: true);
       _myBox.put(id, updatedTask);
-      _taskList[_taskList.indexWhere((task) => task.id == id)] = updatedTask;
-      _taskList.refresh();
+      final index = _taskList.indexWhere((task) => task.id == id);
+      if (index != -1) {
+        _taskList[index] = updatedTask;
+        // filterTasks(
+        //   searchController.text,
+        //   selectedPriority.value,
+        //   filterDueDate.value,
+        //   filterCreateDate.value,
+        // );
+      }
       Get.showSnackbar(
         const GetSnackBar(
           duration: Duration(seconds: 3),
@@ -176,8 +177,13 @@ class TaskController extends GetxController {
     final taskIndex = _taskList.indexWhere((task) => task.id == id);
     if (taskIndex != -1) {
       _myBox.delete(id);
-      // _taskList.removeAt(taskIndex);
-      _taskList.removeWhere((task) => task.id == id);
+      _taskList.removeAt(taskIndex);
+      // filterTasks(
+      //   searchController.text,
+      //   selectedPriority.value,
+      //   filterDueDate.value,
+      //   filterCreateDate.value,
+      // );
       Get.back();
       Get.showSnackbar(
         const GetSnackBar(
@@ -189,12 +195,64 @@ class TaskController extends GetxController {
     }
   }
 
-  void clearFields() {
+// void filterTasks(String searchText, String priority, DateTime dueDate,
+//       DateTime createDate) {
+//     var filtered = _taskList.where((task) {
+//       var matchesSearchText = searchText.isEmpty ||
+//           task.title.toLowerCase().contains(searchText.toLowerCase()) ||
+//           task.description.toLowerCase().contains(searchText.toLowerCase());
+//       var matchesPriority = priority.isEmpty || task.priority == priority;
+//       return matchesSearchText && matchesPriority;
+//     }).toList();
+//     _filteredTaskList.assignAll(filtered);
+//     Get.back();
+//   }
+  void filterTasks(String priority, DateTime dueDate, DateTime createDate) {
+    var filtered = _taskList.where((task) {
+      var matchesPriority = priority.isEmpty || task.priority == priority;
+
+      var matchesDueDate = (dueDate == DateTime.now()) ||
+          task.dueDate.isAtSameMomentAs(dueDate) ||
+          task.dueDate.isBefore(dueDate);
+
+      var matchesCreateDate = (createDate == DateTime.now()) ||
+          task.createdAt.isAtSameMomentAs(createDate) ||
+          task.createdAt.isAfter(createDate);
+
+      return matchesPriority || matchesDueDate || matchesCreateDate;
+    }).toList();
+
+    _filteredTaskList.assignAll(filtered);
+    Get.back();
+  }
+
+  void searchTasks(
+    String searchText,
+  ) {
+    var filtered = _taskList.where((task) {
+      var matchesSearchText = searchText.isEmpty ||
+          task.title.toLowerCase().contains(searchText.toLowerCase()) ||
+          task.description.toLowerCase().contains(searchText.toLowerCase());
+      return matchesSearchText;
+    }).toList();
+    _filteredTaskList.assignAll(filtered);
+    Get.back();
+  }
+
+  void clearTextFields() {
     titleController.clear();
     descriptionController.clear();
     completed = false;
-    dueDate = ''.obs;
-    priority = ''.obs;
+    dueDate.value = DateTime.now();
+    priority.value = 'Low';
     isEditing = false;
+  }
+
+  void clearFilters() {
+    searchController.clear();
+    selectedPriority.value = '';
+    filterDueDate.value = DateTime.now();
+    filterCreateDate.value = DateTime.now();
+    _filteredTaskList.assignAll(_taskList);
   }
 }
