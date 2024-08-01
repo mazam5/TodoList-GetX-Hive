@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_list_app/controller/task_controller.dart';
-import 'package:todo_list_app/model/task_model.dart';
 
 class AddEditDialog extends StatelessWidget {
-  AddEditDialog({super.key, required bool isEditing, required Task task});
+  AddEditDialog({super.key, required this.id});
 
   final TaskController controller = Get.put(TaskController());
+
+  final int id;
 
   @override
   Widget build(BuildContext context) {
@@ -17,41 +18,53 @@ class AddEditDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Todo',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                const Text(
+                  'Todo',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+              ],
             ),
-            TextField(
-              controller: controller.titleController,
-              onChanged: (value) => {
-                controller.titleController!.text = value,
-                print(controller.titleController!.text),
-              },
+            TextFormField(
               key: const ValueKey('title'),
-              // autofocus: true,
+              controller: controller.titleController,
+              textCapitalization: TextCapitalization.sentences,
+              onChanged: (value) => {
+                controller.titleController.text = value,
+                // print(controller.titleController!.text),
+              },
               decoration: const InputDecoration(labelText: 'Title'),
             ),
-            TextField(
-              controller: controller.descriptionController,
-              onChanged: (value) => {
-                controller.descriptionController!.text = value,
-                print(controller.descriptionController!.text),
-              },
+            const SizedBox(height: 10),
+            TextFormField(
               key: const ValueKey('description'),
+              controller: controller.descriptionController,
+              textCapitalization: TextCapitalization.sentences,
+              minLines: 1,
+              maxLines: 3,
+              onChanged: (value) =>
+                  {controller.descriptionController.text = value},
               decoration: const InputDecoration(labelText: 'Description'),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 DropdownButton(
-                  // value: controller.priority,
                   hint: Text(
-                    controller.priority == null
+                    controller.priority == ''
                         ? 'Priority'
-                        : controller.priority!,
+                        : controller.priority.toString(),
                   ),
                   items: const [
                     DropdownMenuItem(
@@ -67,10 +80,7 @@ class AddEditDialog extends StatelessWidget {
                       child: Text('High'),
                     ),
                   ],
-                  onChanged: (value) {
-                    controller.priority = value;
-                    print(controller.priority);
-                  },
+                  onChanged: (value) => controller.priority = value.toString(),
                 ),
                 TextButton(
                   onPressed: () {
@@ -79,34 +89,39 @@ class AddEditDialog extends StatelessWidget {
                       initialDate: DateTime.now(),
                       firstDate: DateTime.now(),
                       lastDate: DateTime(2025),
+                      currentDate: DateTime.now(),
                     ).then((value) {
                       if (value != null) {
                         controller.dueDate = value;
-                        print(controller.dueDate);
+                        // print(controller.dueDate);
                       }
                     });
                   },
                   child: Text(
-                    controller.dueDate == null
+                    controller.dueDate == DateTime.now()
                         ? 'Due Date'
                         : controller.dueDate.toString().substring(0, 10),
                   ),
                 ),
               ],
             ),
-            FilledButton(
-              onPressed: () {
-                controller.addTask();
-                Get.back();
-                Get.showSnackbar(
-                  const GetSnackBar(
-                    duration: Duration(seconds: 2),
-                    backgroundColor: Colors.green,
-                    messageText: Text('Task added successfully!'),
-                  ),
-                );
-              },
-              child: const Text('Create Todo'),
+            Row(
+              children: [
+                OutlinedButton(
+                    onPressed: () {
+                      controller.clearFields();
+                    },
+                    child: const Text('Clear')),
+                const Spacer(),
+                FilledButton(
+                  onPressed: () {
+                    controller.isEditing
+                        ? controller.updateTask(id)
+                        : controller.addTask();
+                  },
+                  child: const Text('Save Todo'),
+                ),
+              ],
             ),
           ],
         ),

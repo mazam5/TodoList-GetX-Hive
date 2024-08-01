@@ -18,4 +18,17 @@ class Task {
     required this.createdAt,
     // required this.updatedAt,
   });
+
+  Task copyWith({required bool completed}) {
+    return Task(
+      id: id,
+      title: title,
+      description: description,
+      completed: completed,
+      priority: priority,
+      dueDate: dueDate,
+      createdAt: createdAt,
+      // updatedAt: updatedAt,
+    );
+  }
 }

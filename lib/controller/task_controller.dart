@@ -3,14 +3,14 @@ import 'package:get/get.dart';
 import 'package:todo_list_app/model/task_model.dart';
 
 class TaskController extends GetxController {
-  final List<Task> _taskList = <Task>[
+  final RxList<Task> _taskList = <Task>[
     Task(
       id: 1,
       title: 'Task 1',
       description: 'Description 1',
-      completed: false,
-      priority: 'high',
-      dueDate: DateTime.now(),
+      completed: true,
+      priority: 'High',
+      dueDate: DateTime(2024, 8, 3),
       createdAt: DateTime.now(),
     ),
     Task(
@@ -18,8 +18,8 @@ class TaskController extends GetxController {
       title: 'Task 2',
       description: 'Description 2',
       completed: false,
-      priority: 'medium',
-      dueDate: DateTime.now(),
+      priority: 'Medium',
+      dueDate: DateTime(2024, 8, 5),
       createdAt: DateTime.now(),
     ),
     Task(
@@ -27,85 +27,133 @@ class TaskController extends GetxController {
       title: 'Task 3',
       description: 'Description 3',
       completed: false,
-      priority: 'low',
-      dueDate: DateTime.now(),
+      priority: 'Low',
+      dueDate: DateTime(2024, 8, 7),
       createdAt: DateTime.now(),
     ),
   ].obs;
 
   List<Task> get taskList => _taskList;
 
-  TextEditingController? titleController;
-  TextEditingController? descriptionController;
-  bool? completed;
-  DateTime? dueDate;
-  String? priority;
-
-  @override
-  void onInit() {
-    // TODO: implement onInit
-    super.onInit();
-    titleController = TextEditingController();
-    descriptionController = TextEditingController();
-    completed = false;
-    dueDate = DateTime.now();
-    priority = null;
-  }
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  bool completed = false;
+  DateTime dueDate = DateTime.now();
+  String priority = '';
+  bool isEditing = false;
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    titleController.dispose();
+    descriptionController.dispose();
     super.dispose();
-    titleController!.dispose();
-    descriptionController!.dispose();
   }
 
   void addTask() {
     final task = Task(
       id: _taskList.length + 1,
-      title: titleController!.text,
-      description: descriptionController!.text,
-      completed: completed!,
-      priority: priority!,
-      dueDate: dueDate!,
+      title: titleController.text,
+      description: descriptionController.text,
+      completed: completed,
+      priority: priority,
+      dueDate: dueDate,
       createdAt: DateTime.now(),
     );
     _taskList.add(task);
-    titleController!.clear();
-    descriptionController!.clear();
-    completed = false;
-    dueDate = DateTime.now();
-    priority = null;
+    Get.back();
+    clearFields();
+    Get.showSnackbar(
+      const GetSnackBar(
+        duration: Duration(seconds: 3),
+        backgroundColor: Colors.green,
+        messageText: Text('Task added successfully!'),
+      ),
+    );
   }
 
   void editTask(int id) {
+    isEditing = true;
     final index = _taskList.indexWhere((task) => task.id == id);
     if (index != -1) {
-      titleController!.text = _taskList[index].title;
-      descriptionController!.text = _taskList[index].description;
+      titleController.text = _taskList[index].title;
+      descriptionController.text = _taskList[index].description;
       completed = _taskList[index].completed;
       dueDate = _taskList[index].dueDate;
       priority = _taskList[index].priority;
     }
   }
 
-  void removeTask(int id) {
-    _taskList.removeWhere((task) => task.id == id);
+  void updateTask(int id) {
+    final index = _taskList.indexWhere((task) => task.id == id);
+    if (index != -1) {
+      _taskList[index] = Task(
+        id: id,
+        title: titleController.text,
+        description: descriptionController.text,
+        completed: completed,
+        priority: priority,
+        dueDate: dueDate,
+        createdAt: DateTime.now(),
+      );
+    }
+    clearFields();
+    Get.back();
+    isEditing = false;
+    Get.showSnackbar(
+      const GetSnackBar(
+        duration: Duration(seconds: 3),
+        backgroundColor: Colors.blue,
+        messageText: Text('Task updated successfully!'),
+      ),
+    );
   }
 
   void markAsCompleted(int id) {
     final index = _taskList.indexWhere((task) => task.id == id);
     if (index != -1) {
-      _taskList[index].completed = !_taskList[index].completed;
-      print(
-          'Task ${_taskList[index].title} is completed: ${_taskList[index].completed}');
+      if (_taskList[index].completed) {
+        Get.showSnackbar(
+          const GetSnackBar(
+            duration: Duration(seconds: 3),
+            backgroundColor: Colors.red,
+            messageText: Text('Task already marked as completed!'),
+          ),
+        );
+        return;
+      }
+      _taskList[index] = _taskList[index].copyWith(
+        completed: !_taskList[index].completed,
+      );
+      _taskList.refresh();
+    }
+    Get.showSnackbar(
+      const GetSnackBar(
+        duration: Duration(seconds: 3),
+        backgroundColor: Colors.orange,
+        messageText: Text('Task marked as completed!'),
+      ),
+    );
+  }
+
+  void removeTask(int id) {
+    _taskList.removeWhere((task) => task.id == id);
+  }
+
+  void undoDelete(int id, Task task) {
+    final index = _taskList.indexWhere((t) => t.id == id);
+    if (index != -1) {
+      _taskList.insert(index, task);
+    } else {
+      _taskList.add(task);
     }
   }
 
-  void updateTask(int id, Task task) {
-    final index = _taskList.indexWhere((task) => task.id == id);
-    if (index != -1) {
-      _taskList[index] = task;
-    }
+  void clearFields() {
+    titleController.clear();
+    descriptionController.clear();
+    completed = false;
+    dueDate = DateTime.now();
+    priority = '';
+    isEditing = false;
   }
 }
