@@ -13,14 +13,14 @@ class TaskController extends GetxController {
   }
 
   final RxList<Task> _taskList = <Task>[].obs;
+  RxString priority = ''.obs;
+  late RxString dueDate = DateTime.now().toIso8601String().obs;
 
   List<Task> get taskList => _taskList;
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   bool completed = false;
-  DateTime dueDate = DateTime.now();
-  String priority = '';
   bool isEditing = false;
 
   @override
@@ -78,8 +78,10 @@ class TaskController extends GetxController {
       title: titleController.text,
       description: descriptionController.text,
       completed: completed,
-      priority: priority,
-      dueDate: dueDate,
+      priority: priority.string,
+      dueDate: dueDate.value.toString().isNotEmpty
+          ? DateTime.parse(dueDate.value)
+          : DateTime.now(),
       createdAt: DateTime.now(),
     );
     clearFields();
@@ -102,8 +104,8 @@ class TaskController extends GetxController {
       titleController.text = task.title;
       descriptionController.text = task.description;
       completed = task.completed;
-      dueDate = task.dueDate;
-      priority = task.priority;
+      dueDate = task.dueDate.toIso8601String().obs;
+      priority = task.priority.toString().obs;
     } else {
       isEditing = false;
       Get.showSnackbar(
@@ -124,8 +126,10 @@ class TaskController extends GetxController {
         title: titleController.text,
         description: descriptionController.text,
         completed: completed,
-        priority: priority,
-        dueDate: dueDate,
+        priority: priority.string,
+        dueDate: dueDate.value.toString().isNotEmpty
+            ? DateTime.parse(dueDate.value)
+            : DateTime.now(),
         createdAt: task.createdAt,
       );
       _myBox.put(id, updatedTask);
@@ -189,8 +193,8 @@ class TaskController extends GetxController {
     titleController.clear();
     descriptionController.clear();
     completed = false;
-    dueDate = DateTime.now();
-    priority = '';
+    dueDate = ''.obs;
+    priority = ''.obs;
     isEditing = false;
   }
 }

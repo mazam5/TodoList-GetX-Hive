@@ -10,7 +10,6 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(TaskAdapter());
   final tasksHive = await Hive.openBox<Task>('tasks');
-  print(tasksHive.values);
   runApp(const MyApp());
 }
 
@@ -23,6 +22,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        useMaterial3: true,
       ),
       title: 'Todo List App',
       home: MainScreen(),

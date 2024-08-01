@@ -68,7 +68,7 @@ class AddEditDialog extends StatelessWidget {
               children: [
                 DropdownButton(
                   hint: Text(
-                    controller.priority == ''
+                    controller.priority == ''.obs
                         ? 'Priority'
                         : controller.priority.toString(),
                   ),
@@ -86,7 +86,8 @@ class AddEditDialog extends StatelessWidget {
                       child: Text('Low'),
                     ),
                   ],
-                  onChanged: (value) => controller.priority = value.toString(),
+                  onChanged: (value) =>
+                      controller.priority = value.toString().obs,
                 ),
                 TextButton(
                   onPressed: () {
@@ -98,13 +99,12 @@ class AddEditDialog extends StatelessWidget {
                       currentDate: DateTime.now(),
                     ).then((value) {
                       if (value != null) {
-                        controller.dueDate = value;
-                        // print(controller.dueDate);
+                        controller.dueDate = value.toString().obs;
                       }
                     });
                   },
                   child: Text(
-                    controller.dueDate == DateTime.now()
+                    controller.dueDate == DateTime.now().toIso8601String().obs
                         ? 'Due Date'
                         : controller.dueDate.toString().substring(0, 10),
                   ),

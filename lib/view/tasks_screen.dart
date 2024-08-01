@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_list_app/controller/task_controller.dart';
-import 'package:todo_list_app/model/task_model.dart';
+import 'package:todo_list_app/widgets/add_reminder.dart';
+import 'package:todo_list_app/widgets/delete_dialog.dart';
 
-import 'add_edit_widget.dart';
+import '../widgets/add_edit_widget.dart';
 
 class MainScreen extends StatelessWidget {
   MainScreen({super.key});
@@ -117,7 +118,6 @@ class MainScreen extends StatelessWidget {
                           ),
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.all(10),
                           leading: Checkbox(
                             key: ValueKey(todo.id),
                             value: todo.completed,
@@ -155,20 +155,48 @@ class MainScreen extends StatelessWidget {
                                   : TextDecoration.none,
                             ),
                           ),
-                          trailing: Column(
+                          trailing: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: todo.priority == 'High'
-                                        ? Colors.red
-                                        : todo.priority == 'Medium'
-                                            ? Colors.orange
-                                            : Colors.green,
-                                    borderRadius: BorderRadius.circular(5.0),
-                                  ),
-                                  child: Text(todo.priority)),
-                              Text(todo.dueDate.toString().substring(0, 10)),
+                              IconButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return const AddNotification();
+                                    },
+                                  );
+                                },
+                                icon: const Icon(Icons.add_alert_rounded),
+                              ),
+                              SizedBox(
+                                width: 100,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: todo.priority == 'High'
+                                            ? Colors.red
+                                            : todo.priority == 'Medium'
+                                                ? Colors.orange
+                                                : Colors.green,
+                                        borderRadius:
+                                            BorderRadius.circular(5.0),
+                                      ),
+                                      child: Text(
+                                        todo.priority,
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                    Text(todo.dueDate
+                                        .toString()
+                                        .substring(0, 10)),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -178,56 +206,29 @@ class MainScreen extends StatelessWidget {
                 },
               ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.add),
+        label: const Text('Add Task'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        highlightElevation: 10,
         onPressed: () {
           showDialog(
             context: context,
             builder: (context) {
               controller.titleController.clear();
               controller.descriptionController.clear();
-              controller.priority = '';
-              controller.dueDate = DateTime.now();
+              controller.priority = ''.obs;
+              controller.dueDate = DateTime.now().toIso8601String().obs;
               return AddEditDialog(
                 id: 0,
               );
             },
           );
         },
-        child: const Icon(Icons.add),
       ),
-    );
-  }
-}
-
-class DeleteDialog extends StatelessWidget {
-  const DeleteDialog({
-    super.key,
-    required this.controller,
-    required this.todo,
-  });
-
-  final TaskController controller;
-  final Task todo;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Delete Todo?'),
-      content: const Text('Are you sure you want to delete this todo?'),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Get.back();
-          },
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            controller.removeTask(todo.id);
-          },
-          child: const Text('Delete'),
-        ),
-      ],
     );
   }
 }
