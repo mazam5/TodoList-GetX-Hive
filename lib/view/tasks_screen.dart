@@ -70,10 +70,6 @@ class MainScreen extends StatelessWidget {
                   ),
                   onChanged: (value) {
                     controller.searchController.text = value;
-                    // controller.filterTasks(
-                    //   value,
-                    //   controller.selectedPriority.value,
-                    // );
                   },
                 ),
               ),
@@ -105,12 +101,6 @@ class MainScreen extends StatelessWidget {
                       .toList(),
                   onChanged: (value) {
                     controller.selectedPriority.value = value!;
-                    // controller.filterTasks(
-                    //   controller.searchController.text,
-                    //   controller.selectedPriority.value,
-                    //   controller.filterDueDate.value,
-                    //   controller.filterCreateDate.value,
-                    // );
                   },
                 ),
                 subtitle: SizedBox(
@@ -191,12 +181,6 @@ class MainScreen extends StatelessWidget {
                       controller.filterDueDate.value,
                       controller.filterCreateDate.value,
                     );
-                    // controller.filterTasks(
-                    //   controller.searchController.text,
-                    //   controller.selectedPriority.value,
-                    //   controller.filterDueDate.value,
-                    //   controller.filterCreateDate.value,
-                    // );
                   },
                   icon: const Icon(Iconsax.filter_search4),
                   label: const Text('Apply Filter'),

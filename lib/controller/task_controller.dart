@@ -65,12 +65,6 @@ class TaskController extends GetxController {
 
     _myBox.put(task.id, task);
     _taskList.add(task);
-    // filterTasks(
-    //   searchController.text,
-    //   selectedPriority.value,
-    //   filterDueDate.value,
-    //   filterCreateDate.value,
-    // );
     clearTextFields();
     Get.back();
     Get.showSnackbar(
@@ -120,12 +114,6 @@ class TaskController extends GetxController {
       final index = _taskList.indexWhere((task) => task.id == id);
       if (index != -1) {
         _taskList[index] = updatedTask;
-        // filterTasks(
-        //   searchController.text,
-        //   selectedPriority.value,
-        //   filterDueDate.value,
-        //   filterCreateDate.value,
-        // );
       }
     }
     clearTextFields();
@@ -148,12 +136,6 @@ class TaskController extends GetxController {
       final index = _taskList.indexWhere((task) => task.id == id);
       if (index != -1) {
         _taskList[index] = updatedTask;
-        // filterTasks(
-        //   searchController.text,
-        //   selectedPriority.value,
-        //   filterDueDate.value,
-        //   filterCreateDate.value,
-        // );
       }
       Get.showSnackbar(
         const GetSnackBar(
@@ -178,12 +160,6 @@ class TaskController extends GetxController {
     if (taskIndex != -1) {
       _myBox.delete(id);
       _taskList.removeAt(taskIndex);
-      // filterTasks(
-      //   searchController.text,
-      //   selectedPriority.value,
-      //   filterDueDate.value,
-      //   filterCreateDate.value,
-      // );
       Get.back();
       Get.showSnackbar(
         const GetSnackBar(
@@ -195,18 +171,6 @@ class TaskController extends GetxController {
     }
   }
 
-// void filterTasks(String searchText, String priority, DateTime dueDate,
-//       DateTime createDate) {
-//     var filtered = _taskList.where((task) {
-//       var matchesSearchText = searchText.isEmpty ||
-//           task.title.toLowerCase().contains(searchText.toLowerCase()) ||
-//           task.description.toLowerCase().contains(searchText.toLowerCase());
-//       var matchesPriority = priority.isEmpty || task.priority == priority;
-//       return matchesSearchText && matchesPriority;
-//     }).toList();
-//     _filteredTaskList.assignAll(filtered);
-//     Get.back();
-//   }
   void filterTasks(String priority, DateTime dueDate, DateTime createDate) {
     var filtered = _taskList.where((task) {
       var matchesPriority = priority.isEmpty || task.priority == priority;
