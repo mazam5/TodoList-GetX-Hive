@@ -5,7 +5,7 @@ import 'package:todo_list_app/controller/notifications_controller.dart';
 import 'package:todo_list_app/model/task_model.dart';
 
 class TaskController extends GetxController {
-  final Box<Task> _myBox = Hive.box<Task>('tasks');
+  final Box<Task> _myBox = Hive.box<Task>('newtasks');
 
   final RxList<Task> _taskList = <Task>[].obs;
   final RxList<Task> _filteredTaskList = <Task>[].obs;
@@ -14,12 +14,13 @@ class TaskController extends GetxController {
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
 
-  final RxString selectedPriority = ''.obs;
+  final RxString priority = ''.obs;
+  var selectedPriority = ''.obs;
+  // final RxString selectedPriority = ''.obs;
 
-  RxString priority = 'Low'.obs;
-  Rx<DateTime> dueDate = DateTime.now().obs;
-  Rx<DateTime> filterDueDate = DateTime.now().obs;
-  Rx<DateTime> filterCreateDate = DateTime.now().obs;
+  Rx<DateTime?> dueDate = Rx<DateTime?>(null);
+  var filterDueDate = Rx<DateTime?>(null);
+  var filterCreateDate = Rx<DateTime?>(null);
 
   RxInt reminderTimes = 0.obs;
 
@@ -61,7 +62,7 @@ class TaskController extends GetxController {
       description: descriptionController.text,
       completed: completed,
       priority: priority.value,
-      dueDate: dueDate.value,
+      dueDate: dueDate.value!,
       createdAt: DateTime.now(),
       reminderTimes: reminderTimes.value,
     );
@@ -116,7 +117,7 @@ class TaskController extends GetxController {
         description: descriptionController.text,
         completed: completed,
         priority: priority.value,
-        dueDate: dueDate.value,
+        dueDate: dueDate.value!,
         createdAt: task.createdAt,
         reminderTimes: reminderTimes,
       );
@@ -147,6 +148,7 @@ class TaskController extends GetxController {
       final index = _taskList.indexWhere((task) => task.id == id);
       if (index != -1) {
         _taskList[index] = updatedTask;
+        _filteredTaskList[index] = updatedTask;
       }
       Get.showSnackbar(
         const GetSnackBar(
@@ -183,19 +185,20 @@ class TaskController extends GetxController {
     }
   }
 
-  void filterTasks(String priority, DateTime dueDate, DateTime createDate) {
+  void filterTasks(String? priority, DateTime? dueDate, DateTime? createDate) {
     var filtered = _taskList.where((task) {
-      var matchesPriority = priority.isEmpty || task.priority == priority;
+      var matchesPriority =
+          priority == null || priority.isEmpty || task.priority == priority;
 
-      var matchesDueDate = (dueDate == DateTime.now()) ||
+      var matchesDueDate = dueDate == null ||
           task.dueDate.isAtSameMomentAs(dueDate) ||
           task.dueDate.isBefore(dueDate);
 
-      var matchesCreateDate = (createDate == DateTime.now()) ||
+      var matchesCreateDate = createDate == null ||
           task.createdAt.isAtSameMomentAs(createDate) ||
           task.createdAt.isAfter(createDate);
 
-      return matchesPriority || matchesDueDate || matchesCreateDate;
+      return matchesPriority && matchesDueDate && matchesCreateDate;
     }).toList();
 
     _filteredTaskList.assignAll(filtered);
@@ -219,7 +222,7 @@ class TaskController extends GetxController {
     titleController.clear();
     descriptionController.clear();
     completed = false;
-    dueDate.value = DateTime.now();
+    dueDate.value = null;
     priority.value = 'Low';
     // isEditing = false;
   }
@@ -227,8 +230,8 @@ class TaskController extends GetxController {
   void clearFilters() {
     searchController.clear();
     selectedPriority.value = '';
-    filterDueDate.value = DateTime.now();
-    filterCreateDate.value = DateTime.now();
+    filterDueDate.value = null;
+    filterCreateDate.value = null;
     _filteredTaskList.assignAll(_taskList);
   }
 }

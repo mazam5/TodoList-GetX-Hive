@@ -7,15 +7,23 @@ class TaskAdapter extends TypeAdapter<Task> {
 
   @override
   Task read(BinaryReader reader) {
+    final id = reader.read();
+    final title = reader.read();
+    final description = reader.read();
+    final completed = reader.read();
+    final priority = reader.read();
+    final dueDate = reader.read();
+    final createdAt = reader.read();
+    final reminderTimes = reader.read() ?? [];
     return Task(
-      id: reader.read(),
-      title: reader.read(),
-      description: reader.read(),
-      completed: reader.read(),
-      priority: reader.read(),
-      dueDate: reader.read(),
-      createdAt: reader.read(),
-      reminderTimes: reader.read(),
+      id: id,
+      title: title,
+      description: description,
+      completed: completed,
+      priority: priority,
+      dueDate: dueDate,
+      createdAt: createdAt,
+      reminderTimes: reminderTimes,
     );
   }
 
@@ -28,6 +36,7 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..write(obj.completed)
       ..write(obj.priority)
       ..write(obj.dueDate)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..write(obj.reminderTimes);
   }
 }

@@ -18,7 +18,7 @@ class NotificationController {
         [
           NotificationChannel(
             channelKey: 'alerts',
-            channelName: 'Alerts',
+            channelName: 'alerts',
             channelDescription: 'Notification tests as alerts',
             playSound: true,
             onlyAlertOnce: true,
@@ -30,7 +30,7 @@ class NotificationController {
           ),
           NotificationChannel(
             channelKey: 'basic_channel',
-            channelName: 'Calls',
+            channelName: 'basic_channel',
             channelDescription: 'Notification tests for calls',
             playSound: true,
             onlyAlertOnce: true,
@@ -119,23 +119,16 @@ class NotificationController {
           title: const Text(
             'Get Notified!',
           ),
-          content: Column(
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Image.asset(
-                      'assets/images/animated-bell.gif',
-                      // height: MediaQuery.of(context).size.height * 0.3,
-                      fit: BoxFit.fitWidth,
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.notifications_active,
+                size: 50,
+                color: Colors.deepPurple,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                  'Allow Awesome Notifications to send you beautiful notifications!'),
+              SizedBox(height: 20),
+              Text('Allow To Do App to send you notifications!'),
             ],
           ),
           actions: [

@@ -54,7 +54,6 @@ class AddEditDialog extends StatelessWidget {
               },
               onChanged: (value) => {
                 controller.titleController.text = value,
-                // print(controller.titleController!.text),
               },
               decoration: const InputDecoration(labelText: 'Title'),
             ),
@@ -117,10 +116,10 @@ class AddEditDialog extends StatelessWidget {
                       });
                     },
                     child: Text(
-                      controller.dueDate.value == DateTime.now()
+                      controller.dueDate.value == null
                           ? 'Due Date'
                           : DateFormat('dd-MMM-yyyy').format(
-                              controller.dueDate.value,
+                              controller.dueDate.value!,
                             ),
                     ),
                   ),

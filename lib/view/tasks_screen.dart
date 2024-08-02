@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-import 'package:todo_list_app/controller/notifications_controller.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:todo_list_app/controller/task_controller.dart';
 import 'package:todo_list_app/widgets/add_edit_widget.dart';
 import 'package:todo_list_app/widgets/add_reminder.dart';
 import 'package:todo_list_app/widgets/delete_dialog.dart';
+import 'package:todo_list_app/controller/notifications_controller.dart';
 
 class MainScreen extends StatelessWidget {
   MainScreen({super.key});
@@ -26,7 +27,10 @@ class MainScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.grey[300],
-        title: const Text('To Do List App'),
+        title: Text(
+          'To Do',
+          style: GoogleFonts.mochiyPopOne(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Iconsax.filter_search),
@@ -87,7 +91,7 @@ class MainScreen extends StatelessWidget {
             const Divider(),
             Obx(
               () => ListTile(
-                minTileHeight: 80,
+                minVerticalPadding: 20, // Adjust as needed
                 leading: DropdownButton<String>(
                   value: controller.selectedPriority.value.isEmpty
                       ? null
@@ -110,79 +114,76 @@ class MainScreen extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('Due Date'),
-                          TextButton(
-                            onPressed: () {
-                              showDatePicker(
-                                context: context,
-                                initialDate: controller.filterDueDate.value,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              ).then((value) {
-                                if (value != null) {
-                                  controller.filterDueDate.value = value;
-                                }
-                              });
-                            },
-                            child: Text(
-                              controller.filterDueDate.value == DateTime.now()
-                                  ? 'Due Date'
-                                  : DateFormat('dd-MMM').format(
-                                      controller.filterDueDate.value,
-                                    ),
-                            ),
-                          ),
-                        ],
+                      TextButton(
+                        onPressed: () {
+                          showDatePicker(
+                            context: context,
+                            initialDate: controller.filterDueDate.value ??
+                                DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          ).then((value) {
+                            if (value != null) {
+                              controller.filterDueDate.value = value;
+                            }
+                          });
+                        },
+                        child: Text(
+                          controller.filterDueDate.value == null
+                              ? 'D.Date'
+                              : DateFormat('dd-MMM')
+                                  .format(controller.filterDueDate.value!),
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('Create Date'),
-                          TextButton(
-                            onPressed: () {
-                              showDatePicker(
-                                context: context,
-                                initialDate: controller.filterCreateDate.value,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              ).then((value) {
-                                if (value != null) {
-                                  controller.filterCreateDate.value = value;
-                                }
-                              });
-                            },
-                            child: Text(
-                              controller.filterCreateDate.value ==
-                                      DateTime.now()
-                                  ? 'Created Date'
-                                  : DateFormat('dd-MMM').format(
-                                      controller.filterCreateDate.value,
-                                    ),
-                            ),
-                          ),
-                        ],
+                      TextButton(
+                        onPressed: () {
+                          showDatePicker(
+                            context: context,
+                            initialDate: controller.filterCreateDate.value ??
+                                DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          ).then((value) {
+                            if (value != null) {
+                              controller.filterCreateDate.value = value;
+                            }
+                          });
+                        },
+                        child: Text(
+                          controller.filterCreateDate.value == null
+                              ? 'C.Date'
+                              : DateFormat('dd-MMM')
+                                  .format(controller.filterCreateDate.value!),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            const Divider(),
             ListTile(
               horizontalTitleGap: 0,
               leading: SizedBox(
                 width: 150,
                 child: FilledButton.icon(
                   onPressed: () {
-                    controller.filterTasks(
-                      controller.selectedPriority.value,
-                      controller.filterDueDate.value,
-                      controller.filterCreateDate.value,
-                    );
+                    if (controller.filterDueDate.value != null &&
+                        controller.filterCreateDate.value != null) {
+                      controller.filterDueDate.value = controller.dueDate.value;
+                      controller.filterTasks(
+                        controller.selectedPriority.value,
+                        controller.filterDueDate.value!,
+                        controller.filterCreateDate.value!,
+                      );
+                    } else {
+                      Get.snackbar(
+                        'Error',
+                        'Please select both dates',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                    }
                   },
                   icon: const Icon(Iconsax.filter_search4),
                   label: const Text('Apply Filter'),
@@ -199,6 +200,7 @@ class MainScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const Divider(),
           ],
         ),
       ),
@@ -312,6 +314,7 @@ class MainScreen extends StatelessWidget {
                           title: Text(
                             todo.title,
                             style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
                               color: todo.completed == true
                                   ? Colors.grey
                                   : Colors.black,
@@ -324,6 +327,7 @@ class MainScreen extends StatelessWidget {
                           subtitle: Text(
                             todo.description,
                             style: TextStyle(
+                              fontFamily: GoogleFonts.poppins().fontFamily,
                               color: todo.completed == true
                                   ? Colors.grey
                                   : Colors.black,
@@ -352,7 +356,7 @@ class MainScreen extends StatelessWidget {
                                 icon: const Icon(Icons.add_alert),
                               ),
                               SizedBox(
-                                width: 100,
+                                width: 80,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
