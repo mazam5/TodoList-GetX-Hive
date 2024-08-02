@@ -106,7 +106,6 @@ class AddEditDialog extends StatelessWidget {
                     onPressed: () {
                       showDatePicker(
                         context: context,
-                        initialDate: controller.dueDate.value,
                         firstDate: DateTime.now(),
                         lastDate: DateTime(2025),
                       ).then((value) {
@@ -116,7 +115,7 @@ class AddEditDialog extends StatelessWidget {
                       });
                     },
                     child: Text(
-                      controller.dueDate.value == null
+                      controller.dueDate.value == DateTime.now()
                           ? 'Due Date'
                           : DateFormat('dd-MMM-yyyy').format(
                               controller.dueDate.value!,

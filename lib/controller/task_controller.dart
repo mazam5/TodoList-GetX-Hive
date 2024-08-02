@@ -15,14 +15,13 @@ class TaskController extends GetxController {
   final TextEditingController searchController = TextEditingController();
 
   final RxString priority = ''.obs;
-  var selectedPriority = ''.obs;
-  // final RxString selectedPriority = ''.obs;
+  final RxString filterPriority = ''.obs;
 
-  Rx<DateTime?> dueDate = Rx<DateTime?>(null);
-  var filterDueDate = Rx<DateTime?>(null);
-  var filterCreateDate = Rx<DateTime?>(null);
+  final Rx<DateTime?> dueDate = DateTime.now().obs;
+  final Rx<DateTime?> filterDueDate = DateTime.now().obs;
+  final Rx<DateTime?> filterCreateDate = DateTime.now().obs;
 
-  RxInt reminderTimes = 0.obs;
+  final RxInt reminderTimes = 0.obs;
 
   bool completed = false;
   bool isEditing = false;
@@ -198,7 +197,7 @@ class TaskController extends GetxController {
           task.createdAt.isAtSameMomentAs(createDate) ||
           task.createdAt.isAfter(createDate);
 
-      return matchesPriority && matchesDueDate && matchesCreateDate;
+      return matchesPriority || matchesDueDate || matchesCreateDate;
     }).toList();
 
     _filteredTaskList.assignAll(filtered);
@@ -222,16 +221,15 @@ class TaskController extends GetxController {
     titleController.clear();
     descriptionController.clear();
     completed = false;
-    dueDate.value = null;
-    priority.value = 'Low';
-    // isEditing = false;
+    dueDate.value = DateTime.now();
+    priority.value = '';
   }
 
   void clearFilters() {
     searchController.clear();
-    selectedPriority.value = '';
-    filterDueDate.value = null;
-    filterCreateDate.value = null;
+    filterPriority.value = '';
+    filterDueDate.value = DateTime.now();
+    filterCreateDate.value = DateTime.now();
     _filteredTaskList.assignAll(_taskList);
   }
 }

@@ -40,6 +40,7 @@ class MainScreen extends StatelessWidget {
           ),
         ],
       ),
+      // filters
       endDrawer: Drawer(
         child: ListView(
           children: [
@@ -93,9 +94,9 @@ class MainScreen extends StatelessWidget {
               () => ListTile(
                 minVerticalPadding: 20, // Adjust as needed
                 leading: DropdownButton<String>(
-                  value: controller.selectedPriority.value.isEmpty
+                  value: controller.filterPriority.value.isEmpty
                       ? null
-                      : controller.selectedPriority.value,
+                      : controller.filterPriority.value,
                   hint: const Text('Priority'),
                   items: ['All', 'Low', 'Medium', 'High']
                       .map(
@@ -106,7 +107,9 @@ class MainScreen extends StatelessWidget {
                       )
                       .toList(),
                   onChanged: (value) {
-                    controller.selectedPriority.value = value!;
+                    controller.filterPriority.value = value!;
+                    print(
+                        "filter priority value: ${controller.filterPriority.value}");
                   },
                 ),
                 subtitle: SizedBox(
@@ -117,43 +120,50 @@ class MainScreen extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           showDatePicker(
+                            helpText: 'Created Date',
+                            fieldLabelText: 'Created Date',
                             context: context,
-                            initialDate: controller.filterDueDate.value ??
-                                DateTime.now(),
                             firstDate: DateTime(2000),
                             lastDate: DateTime(2100),
-                          ).then((value) {
-                            if (value != null) {
-                              controller.filterDueDate.value = value;
-                            }
-                          });
+                            barrierLabel: 'Create Date',
+                          ).then(
+                            (value) {
+                              if (value != null) {
+                                controller.filterCreateDate.value = value;
+                                print(
+                                    "filter create date value: ${controller.filterCreateDate.value} ");
+                              }
+                            },
+                          );
                         },
                         child: Text(
-                          controller.filterDueDate.value == null
-                              ? 'D.Date'
+                          controller.filterCreateDate.value == DateTime.now()
+                              ? 'C.Date'
                               : DateFormat('dd-MMM')
-                                  .format(controller.filterDueDate.value!),
+                                  .format(controller.filterCreateDate.value!),
                         ),
                       ),
                       TextButton(
                         onPressed: () {
                           showDatePicker(
+                            helpText: 'Due Date',
+                            fieldLabelText: 'Due Date',
                             context: context,
-                            initialDate: controller.filterCreateDate.value ??
-                                DateTime.now(),
                             firstDate: DateTime(2000),
                             lastDate: DateTime(2100),
                           ).then((value) {
                             if (value != null) {
-                              controller.filterCreateDate.value = value;
+                              controller.filterDueDate.value = value;
+                              print(
+                                  "filter due date value: ${controller.filterDueDate.value} ");
                             }
                           });
                         },
                         child: Text(
-                          controller.filterCreateDate.value == null
-                              ? 'C.Date'
+                          controller.filterDueDate.value == DateTime.now()
+                              ? 'D.Date'
                               : DateFormat('dd-MMM')
-                                  .format(controller.filterCreateDate.value!),
+                                  .format(controller.filterDueDate.value!),
                         ),
                       ),
                     ],
@@ -171,9 +181,9 @@ class MainScreen extends StatelessWidget {
                         controller.filterCreateDate.value != null) {
                       controller.filterDueDate.value = controller.dueDate.value;
                       controller.filterTasks(
-                        controller.selectedPriority.value,
-                        controller.filterDueDate.value!,
-                        controller.filterCreateDate.value!,
+                        controller.filterPriority.value,
+                        controller.filterDueDate.value ?? DateTime.now(),
+                        controller.filterCreateDate.value ?? DateTime.now(),
                       );
                     } else {
                       Get.snackbar(
