@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:todo_list_app/controller/notifications_controller.dart';
+import 'package:todo_list_app/controller/task_controller.dart';
+import 'package:todo_list_app/model/task_model.dart';
 
 class AddNotification extends StatelessWidget {
-  const AddNotification({super.key});
+  AddNotification({super.key, required this.todo});
+  TaskController controller = Get.put(TaskController());
+  final Task todo;
 
   @override
   Widget build(BuildContext context) {
@@ -30,86 +36,36 @@ class AddNotification extends StatelessWidget {
                 ),
               ],
             ),
-            TextFormField(
-              key: const ValueKey('title'),
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
             const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('description'),
-              textCapitalization: TextCapitalization.sentences,
-              minLines: 1,
-              maxLines: 5,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('date'),
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Date'),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('time'),
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Time'),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('repeat'),
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Repeat'),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('category'),
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Category'),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('priority'),
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Priority'),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              key: const ValueKey('notes'),
-              textCapitalization: TextCapitalization.sentences,
-              minLines: 1,
-              maxLines: 5,
-              onChanged: (value) => {
-                // print(value),
-              },
-              decoration: const InputDecoration(labelText: 'Notes'),
+            Row(
+              children: [
+                Obx(
+                  () => Wrap(children: [
+                    ChoiceChip(
+                      label: const Text('1'),
+                      selected: controller.reminderTimes.value == 1,
+                      onSelected: (value) {
+                        controller.reminderTimes.value = 1;
+                      },
+                    ),
+                    ChoiceChip(
+                      label: const Text('2'),
+                      selected: controller.reminderTimes.value == 2,
+                      onSelected: (value) {
+                        controller.reminderTimes.value = 2;
+                      },
+                    ),
+                    ChoiceChip(
+                      label: const Text('3'),
+                      selected: controller.reminderTimes.value == 3,
+                      onSelected: (value) {
+                        controller.reminderTimes.value = 3;
+                      },
+                    ),
+                  ]),
+                ),
+                const Text('per day')
+              ],
             ),
             const SizedBox(height: 10),
             Row(
@@ -117,14 +73,21 @@ class AddNotification extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Get.back();
                   },
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () {
-                    // print('Save');
+                    controller.editTask(todo.id);
+                    controller.updateTask(
+                      todo.id,
+                      controller.reminderTimes.value,
+                    );
+                    // Schedule the notifications
+                    NotificationController.scheduleNewNotifications(todo);
+                    Get.back();
                   },
                   child: const Text('Save'),
                 ),

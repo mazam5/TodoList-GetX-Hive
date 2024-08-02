@@ -138,7 +138,7 @@ class AddEditDialog extends StatelessWidget {
                 FilledButton(
                   onPressed: () {
                     controller.isEditing
-                        ? controller.updateTask(id)
+                        ? controller.updateTask(id, 1)
                         : controller.addTask();
                   },
                   child: const Text('Save Todo'),

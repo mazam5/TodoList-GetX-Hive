@@ -15,6 +15,7 @@ class TaskAdapter extends TypeAdapter<Task> {
       priority: reader.read(),
       dueDate: reader.read(),
       createdAt: reader.read(),
+      reminderTimes: reader.read(),
     );
   }
 

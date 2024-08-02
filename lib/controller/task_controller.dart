@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:todo_list_app/controller/notifications_controller.dart';
 import 'package:todo_list_app/model/task_model.dart';
 
 class TaskController extends GetxController {
@@ -20,6 +20,8 @@ class TaskController extends GetxController {
   Rx<DateTime> dueDate = DateTime.now().obs;
   Rx<DateTime> filterDueDate = DateTime.now().obs;
   Rx<DateTime> filterCreateDate = DateTime.now().obs;
+
+  RxInt reminderTimes = 0.obs;
 
   bool completed = false;
   bool isEditing = false;
@@ -45,7 +47,7 @@ class TaskController extends GetxController {
     _filteredTaskList.assignAll(_taskList);
   }
 
-  void addTask() {
+  void addTask() async {
     final taskId = _myBox.isEmpty
         ? 1
         : _myBox.keys
@@ -61,11 +63,12 @@ class TaskController extends GetxController {
       priority: priority.value,
       dueDate: dueDate.value,
       createdAt: DateTime.now(),
+      reminderTimes: reminderTimes.value,
     );
 
-    _myBox.put(task.id, task);
+    await _myBox.put(task.id, task);
     _taskList.add(task);
-    clearTextFields();
+    _filteredTaskList.add(task);
     Get.back();
     Get.showSnackbar(
       const GetSnackBar(
@@ -75,6 +78,12 @@ class TaskController extends GetxController {
             style: TextStyle(color: Colors.white)),
       ),
     );
+    await NotificationController.createNewNotification(
+      task.title,
+      task.description,
+      task.dueDate,
+    );
+    clearTextFields();
   }
 
   void editTask(int id) {
@@ -98,7 +107,7 @@ class TaskController extends GetxController {
     }
   }
 
-  void updateTask(int id) {
+  void updateTask(int id, int reminderTimes) async {
     final task = _myBox.get(id);
     if (task != null) {
       final updatedTask = Task(
@@ -109,11 +118,13 @@ class TaskController extends GetxController {
         priority: priority.value,
         dueDate: dueDate.value,
         createdAt: task.createdAt,
+        reminderTimes: reminderTimes,
       );
-      _myBox.put(id, updatedTask);
+      await _myBox.put(id, updatedTask);
       final index = _taskList.indexWhere((task) => task.id == id);
       if (index != -1) {
         _taskList[index] = updatedTask;
+        _filteredTaskList[index] = updatedTask;
       }
     }
     clearTextFields();
@@ -160,6 +171,7 @@ class TaskController extends GetxController {
     if (taskIndex != -1) {
       _myBox.delete(id);
       _taskList.removeAt(taskIndex);
+      _filteredTaskList.removeAt(taskIndex);
       Get.back();
       Get.showSnackbar(
         const GetSnackBar(
@@ -209,7 +221,7 @@ class TaskController extends GetxController {
     completed = false;
     dueDate.value = DateTime.now();
     priority.value = 'Low';
-    isEditing = false;
+    // isEditing = false;
   }
 
   void clearFilters() {

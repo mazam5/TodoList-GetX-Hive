@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:todo_list_app/controller/notifications_controller.dart';
 
 import 'package:todo_list_app/controller/task_controller.dart';
 import 'package:todo_list_app/widgets/add_edit_widget.dart';
+import 'package:todo_list_app/widgets/add_reminder.dart';
 import 'package:todo_list_app/widgets/delete_dialog.dart';
 
 class MainScreen extends StatelessWidget {
@@ -335,7 +337,18 @@ class MainScreen extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  NotificationController.createNewNotification(
+                                    todo.title,
+                                    todo.description,
+                                    todo.dueDate,
+                                  );
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AddNotification(todo: todo);
+                                      });
+                                },
                                 icon: const Icon(Icons.add_alert),
                               ),
                               SizedBox(
@@ -401,6 +414,7 @@ class MainScreen extends StatelessWidget {
         ),
         highlightElevation: 10,
         onPressed: () {
+          controller.clearTextFields();
           showDialog(
             context: context,
             builder: (context) {
