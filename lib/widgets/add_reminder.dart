@@ -6,7 +6,7 @@ import 'package:todo_list_app/model/task_model.dart';
 
 class AddNotification extends StatelessWidget {
   AddNotification({super.key, required this.todo});
-  TaskController controller = Get.put(TaskController());
+  final TaskController controller = Get.put(TaskController());
   final Task todo;
 
   @override
